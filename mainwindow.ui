@@ -6,35 +6,30 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>458</width>
-    <height>475</height>
+    <width>412</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>ScreenTime「代码见三」</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ScreenTime.qrc">
     <normaloff>:/img/Assets/32.ico</normaloff>:/img/Assets/32.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListView" name="listView">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>411</width>
-      <height>381</height>
-     </rect>
-    </property>
-   </widget>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QListWidget" name="listWidget"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>458</width>
+     <width>412</width>
      <height>24</height>
     </rect>
    </property>
@@ -43,18 +38,20 @@
      <string>工具</string>
     </property>
     <addaction name="action_2"/>
+    <addaction name="actionOpenWorkingDir"/>
+    <addaction name="actionOpenAppDir"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
      <string>帮助</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="actionOpenAboutDialog"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="action">
+  <action name="actionOpenAboutDialog">
    <property name="text">
     <string>关于</string>
    </property>
@@ -62,6 +59,16 @@
   <action name="action_2">
    <property name="text">
     <string>查看历史</string>
+   </property>
+  </action>
+  <action name="actionOpenWorkingDir">
+   <property name="text">
+    <string>打开工作目录</string>
+   </property>
+  </action>
+  <action name="actionOpenAppDir">
+   <property name="text">
+    <string>打开安装目录</string>
    </property>
   </action>
  </widget>

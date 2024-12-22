@@ -2,5 +2,6 @@
     <qresource prefix="/img">
         <file>Assets/32.ico</file>
         <file>Assets/unknowfile.png</file>
+        <file>Assets/QQGroup.jpg</file>
     </qresource>
 </RCC>
