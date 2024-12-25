@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>412</width>
-    <height>485</height>
+    <width>422</width>
+    <height>589</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,83 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QListWidget" name="listWidget"/>
+     <widget class="QListWidget" name="listWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QChartView" name="chartViewLeft">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>190</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>190</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QChartView" name="chartViewRight">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>190</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>190</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="topMargin">
+       <number>5</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>0~12点使用情况</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>12~24点使用情况</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -29,7 +105,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>412</width>
+     <width>422</width>
      <height>24</height>
     </rect>
    </property>
@@ -37,8 +113,7 @@
     <property name="title">
      <string>工具</string>
     </property>
-    <addaction name="action_2"/>
-    <addaction name="actionOpenWorkingDir"/>
+    <addaction name="actionOpenHistoryDialog"/>
     <addaction name="actionOpenAppDir"/>
    </widget>
    <widget class="QMenu" name="menu_2">
@@ -56,14 +131,9 @@
     <string>关于</string>
    </property>
   </action>
-  <action name="action_2">
+  <action name="actionOpenHistoryDialog">
    <property name="text">
     <string>查看历史</string>
-   </property>
-  </action>
-  <action name="actionOpenWorkingDir">
-   <property name="text">
-    <string>打开工作目录</string>
    </property>
   </action>
   <action name="actionOpenAppDir">
@@ -72,6 +142,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QGraphicsView</extends>
+   <header>qchartview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="ScreenTime.qrc"/>
  </resources>

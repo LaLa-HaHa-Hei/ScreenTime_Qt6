@@ -15,6 +15,7 @@ public:
 
 private slots:
     void on_trayIcon_activated(QSystemTrayIcon::ActivationReason reason);
+    void on_actionOpenAppDir_triggered();
 
 private:
     QMainWindow *_parent;

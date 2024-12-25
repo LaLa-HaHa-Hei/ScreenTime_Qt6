@@ -1,4 +1,4 @@
-QT       += core gui sql
+QT       += core gui sql charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,20 +10,27 @@ CONFIG += c++17
 
 SOURCES += \
     aboutdialog.cpp \
+    appsettings.cpp \
     apptrayicon.cpp \
+    databasemanager.cpp \
     exeitemwidget.cpp \
+    historydialog.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     aboutdialog.h \
+    appsettings.h \
     apptrayicon.h \
+    databasemanager.h \
     exeitemwidget.h \
+    historydialog.h \
     mainwindow.h
 
 FORMS += \
     aboutdialog.ui \
     exeitemwidget.ui \
+    historydialog.ui \
     mainwindow.ui
 
 # Default rules for deployment.

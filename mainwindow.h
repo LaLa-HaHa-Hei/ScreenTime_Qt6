@@ -11,6 +11,16 @@
 #include <Psapi.h>
 #include <QDate>
 #include <QTimer>
+#include <QPixmap>
+#include <QImage>
+#include <QFileDialog>
+#include "databasemanager.h"
+#include "appsettings.h"
+#include <QLabel>
+#include "apptrayicon.h"
+// #include <QChart>
+// #include <QChartView>
+#include <QtCharts>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,19 +37,26 @@ public:
     ~MainWindow();
 
 private slots:
-    // 打开工作目录
-    void on_actionOpenWorkingDir_triggered();
     // 打开按照目录
     void on_actionOpenAppDir_triggered();
     // 打开关于窗口
     void on_actionOpenAboutDialog_triggered();
 
+    void on_actionOpenHistoryDialog_triggered();
+
 protected:
     // 窗口显示事件
     void showEvent(QShowEvent *event) override
     {
-        QMainWindow::showEvent(event);
+        SaveDataToDB();
+        _timerRefreshListWidget.start();
         RefreshListWidget();
+        QMainWindow::showEvent(event);
+    }
+    void hideEvent(QHideEvent *event) override
+    {
+        _timerRefreshListWidget.stop();
+        QMainWindow::hideEvent(event);
     }
     // 窗口关闭事件
     void closeEvent(QCloseEvent* event) override
@@ -50,19 +67,36 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    const QString _exeIconDir = ".\\user-data\\exe-icon";
-    const QString _dataBasePath = ".\\user-data\\sqlite3.db";
+    // 饼图
+    QChart *_chartLeft;
+    QChart *_chartRight;
+    bool _first12hours[12 * 60] = {false};
+    bool _second12hours[12 * 60] = {false};
+    // 托盘
+    AppTrayIcon *_appTrayIcon;
+    // 每分钟检查是否程序在运行
+    QTimer _timerCheckUsing;
+    // 状态栏label
+    QLabel *_statusbarLabel;
+    // 设置
+    AppSettings *_settings;
+    // 临时的应用使用数据列表
+    QMap<QString, int> _exeUsageList;
+    // 程序exe所在的目录
     const QString _appDir = QCoreApplication::applicationDirPath();
     // 今天的日期
     const QDate _today = QDate::currentDate();
     // 数据库
+    DatabaseManager *_dbManager;
     QString _tableName = "During_";
-    QSqlDatabase _db = QSqlDatabase::addDatabase("QSQLITE");
-    QSqlQuery *_query = nullptr;
+    // 获取顶层窗口的次数
+    int _getTopWindowCount = 0;
     // 获取顶层窗口的计时器
     QTimer _timerGetTopWindow;
     // 刷新窗口
     QTimer _timerRefreshListWidget;
+    // 截图
+    QTimer _timerCaptureFullScreen;
     // 向列表中添加项
     void AddListWidgetItem(QString name, QString iconPath, QString time, int percentage);
     // 检测顶层窗口
@@ -71,11 +105,11 @@ private:
     void RefreshListWidget();
     // 将总秒数转化为时间文本
     QString FormatSeconds(int totalSeconds);
-    // // 隐藏
-    // void HideMainWindow();
-    // // 显示
-    // void ShowMainWindow();
-    // // 退出
-    // void ExitApp();
+    // 截图
+    void CaptureFullScreen();
+    // 保存数据到数据库
+    void SaveDataToDB();
+    // 检查是否在使用
+    void CheckUsing();
 };
 #endif // MAINWINDOW_H
