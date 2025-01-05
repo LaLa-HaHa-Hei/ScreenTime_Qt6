@@ -7,11 +7,13 @@ class AppSettings
 {
 public:
     explicit AppSettings(const QString& filePath = "config.ini");
-    QString UserDataDir = ".\\user-data";
-    QString ExeIconDir;
+    QString UserDataFolder = ".\\user-data";
+    QString ExeIconFolder;
     QString DataBasePath;
     QString ScreenshotDir;
-    QString TodayScreenshotDir;
+    QString TodayScreenshotFolder;
+    QString UsageRecordsFolder;
+    QString UsageRecordsFile;
     bool EnableScreenshot = false;
     int ScreenshotInterval_min = 10;
     int JpegQuality = 9;

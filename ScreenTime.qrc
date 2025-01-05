@@ -3,5 +3,7 @@
         <file>Assets/32.ico</file>
         <file>Assets/unknowfile.png</file>
         <file>Assets/QQGroup.jpg</file>
+        <file>Assets/clock1.png</file>
+        <file>Assets/clock2.png</file>
     </qresource>
 </RCC>

@@ -15,9 +15,11 @@ MainWindow::MainWindow(QWidget *parent)
     // 饼图
     _chartLeft = new QChart();
     _chartLeft->legend()->hide();
+    _chartLeft->setBackgroundVisible(false);
     ui->chartViewLeft->setChart(_chartLeft);
     _chartRight = new QChart();
     _chartRight->legend()->hide();
+    _chartRight->setBackgroundVisible(false);
     ui->chartViewRight->setChart(_chartRight);
     CheckUsing();
     connect(&_timerCheckUsing, &QTimer::timeout, this, &MainWindow::CheckUsing);
@@ -28,7 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addWidget(_statusbarLabel);                     // 在状态栏左面
     ui->statusbar->addPermanentWidget(new QLabel("V1.0.0", this)); // 在状态栏右面
     // 托盘
-    _appTrayIcon =  new AppTrayIcon(this);
+    InitializeTray();
+    // new AppTrayIcon(this);
     // 读取设置
     _settings = new AppSettings("config.ini");
     _settings->CheckAndCreateDirectories();
@@ -37,8 +40,10 @@ MainWindow::MainWindow(QWidget *parent)
     _dbManager->OpenDatabase();
     _tableName += _today.toString("yyyyMMdd");
     _dbManager->CreateTable(_tableName);
+    // 加载使用情况
+    LoadUsageRecords();
     // 每隔GetTopWindowInterval_s秒获取顶层窗口
-    // GetTopWindow();
+    GetTopWindow();
     connect(&_timerGetTopWindow, &QTimer::timeout, this, &MainWindow::GetTopWindow);
     _timerGetTopWindow.setInterval(_settings->GetTopWindowInterval_s * 1000);
     _timerGetTopWindow.setTimerType(Qt::PreciseTimer);
@@ -93,7 +98,7 @@ void MainWindow::on_actionOpenAppDir_triggered()
 
 void MainWindow::on_actionOpenAboutDialog_triggered()
 {
-    AboutDialog *w = new AboutDialog();
+    AboutDialog *w = new AboutDialog(this);
     w->show();
 }
 
@@ -110,7 +115,7 @@ void MainWindow::GetTopWindow()
     GetWindowThreadProcessId(activeWindowHandle, &processId);
     if (processId == 0)
     {
-        qWarning() << QString("无法获取processId（%1）, HWND: ").arg(GetLastError()) << activeWindowHandle;
+        // qWarning() << QString("无法获取processId（%1）, HWND: ").arg(GetLastError()) << activeWindowHandle;
         _exeUsageList["Unknown"] += _settings->GetTopWindowInterval_s;
         return;
     }
@@ -118,7 +123,7 @@ void MainWindow::GetTopWindow()
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId);
     if (!hProcess)
     {
-        qWarning() << QString("无法获取打开进程（%1）HWND, pid: ").arg(GetLastError()) << activeWindowHandle << ", " << processId;
+        // qWarning() << QString("无法获取打开进程（%1）HWND, pid: ").arg(GetLastError()) << activeWindowHandle << ", " << processId;
         _exeUsageList["Unknown"] += _settings->GetTopWindowInterval_s;
         return;
     }
@@ -127,7 +132,7 @@ void MainWindow::GetTopWindow()
     if (GetModuleFileNameExW(hProcess, NULL, processPath, MAX_PATH) == 0)
     {
         CloseHandle(hProcess);
-        qWarning() << QString("无法获取应用名（%1）。HWND, pid: ").arg(GetLastError()) << activeWindowHandle << ", " << processId;
+        // qWarning() << QString("无法获取应用名（%1）。HWND, pid: ").arg(GetLastError()) << activeWindowHandle << ", " << processId;
         _exeUsageList["Unknown"] += _settings->GetTopWindowInterval_s;
         return;
     }
@@ -138,7 +143,7 @@ void MainWindow::GetTopWindow()
     // 改程序的使用时间 + 间隔
     _exeUsageList[exeName] += _settings->GetTopWindowInterval_s;
     // 图标
-    QString iconPath = QString("%1\\%2.png").arg(_settings->ExeIconDir, exeName);
+    QString iconPath = QString("%1\\%2.png").arg(_settings->ExeIconFolder, exeName);
     QFile file(iconPath);
     if (!file.exists()) // 如果不存在图片就创建
     {
@@ -153,7 +158,7 @@ void MainWindow::GetTopWindow()
     _getTopWindowCount++;
     if (_getTopWindowCount == _settings->SaveTriggerCount_times)
     {
-        SaveDataToDB();
+        SaveData();
         _getTopWindowCount = 0;
     }
 }
@@ -172,7 +177,7 @@ void MainWindow::RefreshListWidget()
     {
         QString name = query.value(0).toString();
         int seconds = query.value(1).toInt();
-        QString iconPath = QString("%1\\%2.png").arg(_settings->ExeIconDir, name);
+        QString iconPath = QString("%1\\%2.png").arg(_settings->ExeIconFolder, name);
         AddListWidgetItem(name, iconPath, FormatSeconds(seconds), seconds * 100 / totalSeconds);
     }
     // 左面的饼图
@@ -279,7 +284,7 @@ QString MainWindow::FormatSeconds(int totalSeconds)
 
 void MainWindow::on_actionOpenHistoryDialog_triggered()
 {
-    HistoryDialog *w = new HistoryDialog();
+    HistoryDialog *w = new HistoryDialog(this, _settings);
     w->show();
 }
 
@@ -306,7 +311,7 @@ void MainWindow::CaptureFullScreen()
     }
 
     // 将截图保存为JPEG格式
-    QString filePath = QString("%1\\%2.jpeg").arg(_settings->TodayScreenshotDir, QTime::currentTime().toString("hh-mm-ss"));
+    QString filePath = QString("%1\\%2.jpeg").arg(_settings->TodayScreenshotFolder, QTime::currentTime().toString("hh-mm-ss"));
     if (!filePath.isEmpty())
     {
         // 将QPixmap转换为QImage以支持质量设置
@@ -319,11 +324,114 @@ void MainWindow::CaptureFullScreen()
     }
 }
 
-void MainWindow::SaveDataToDB()
+void MainWindow::SaveData()
 {
+    // 保存每个应用使用情况到数据库
     for (auto it = _exeUsageList.begin(); it != _exeUsageList.end(); ++it)
     {
         _dbManager->InsertOrUpdateAppTime(_tableName, it.key(), it.value());
     }
     _exeUsageList.clear();
+    // 保存整体使用情况
+    QFile file(_settings->UsageRecordsFile);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        // QByteArray byteArray(24 * 60 / 8, 0);
+        // for (int i = 0; i < 12 * 60; i++)
+        // {
+        //     byteArray[i/8] |= (_first12hours[i] << (i % 8));
+        // }
+        // for (int i = 12 * 60; i < 24 * 60; i++)
+        // {
+        //     byteArray[i/8] |= (_second12hours[i - 12 * 60] << (i % 8));
+        // }
+        // file.write(byteArray);
+        QDataStream out(&file);
+        out.writeRawData(reinterpret_cast<char*>(_first12hours), sizeof(_first12hours));
+        out.writeRawData(reinterpret_cast<char*>(_second12hours), sizeof(_second12hours));
+        file.close();
+    }
+    else
+    {
+        qCritical() << "无法打开使用情况文件";
+    }
+}
+
+void MainWindow::InitializeTray()
+{
+    _trayIcon = new QSystemTrayIcon(this);
+    _menu = new QMenu(this);
+    _trayIcon->setIcon(QIcon(":/img/Assets/32.ico"));
+    _trayIcon->setToolTip("屏幕使用时间");
+    connect(_trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::onTrayIconActivated);
+
+    actionOpenAppDir = new QAction("打开安装目录", this);
+    connect(actionOpenAppDir, &QAction::triggered, this, &MainWindow::on_actionOpenAppDir_triggered);
+    actionShowWindow = new QAction("显示窗口", this);
+    connect(actionShowWindow, &QAction::triggered, this, &MainWindow::show);
+    actionExitApp = new QAction("退出程序", this);
+    connect(actionExitApp, &QAction::triggered, this, &QApplication::quit);
+
+    _menu->addAction(actionOpenAppDir);
+    _menu->addAction(actionShowWindow);
+    _menu->addAction(actionExitApp);
+
+    _trayIcon->setContextMenu(_menu);
+    _trayIcon->show();
+}
+
+void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    switch (reason)
+    {
+    case QSystemTrayIcon::MiddleClick:
+    case QSystemTrayIcon::Trigger:
+    case QSystemTrayIcon::DoubleClick:
+        if (isVisible())
+        {
+            hide();
+        }
+        else
+        {
+            show();
+        }
+        break;
+    case QSystemTrayIcon::Context:
+    {
+        QPoint pos = QCursor::pos();
+        int offsetY = -_menu->sizeHint().height();
+        _menu->popup(QPoint(pos.x(), pos.y() + offsetY));
+    }
+    break;
+    case QSystemTrayIcon::Unknown:
+        break;
+    }
+}
+
+void MainWindow::LoadUsageRecords()
+{
+    if (QFile::exists(_settings->UsageRecordsFile))
+    {
+        QFile file(_settings->UsageRecordsFile);
+        if (file.open(QIODevice::ReadOnly))
+        {
+            // QByteArray byteArray = file.readAll();
+            // for (int i = 0; i < 12 * 60; ++i)
+            // {
+            //     _first12hours[i] = byteArray[i / 8] & (1 << (i % 8));
+            // }
+            // for (int i = 12 * 60; i < 24 * 60; ++i)
+            // {
+            //     _second12hours[i - 12 * 60] = byteArray[i / 8] & (1 << (i % 8));
+            // }
+            QDataStream in(&file);
+            in.readRawData(reinterpret_cast<char*>(_first12hours), sizeof(_first12hours));
+            in.readRawData(reinterpret_cast<char*>(_second12hours), sizeof(_second12hours));
+            file.close();
+        }
+        else
+        {
+            qCritical() << "无法加载使用情况文件";
+        }
+    }
 }

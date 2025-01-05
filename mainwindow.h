@@ -17,7 +17,7 @@
 #include "databasemanager.h"
 #include "appsettings.h"
 #include <QLabel>
-#include "apptrayicon.h"
+#include <QSystemTrayIcon>
 // #include <QChart>
 // #include <QChartView>
 #include <QtCharts>
@@ -35,23 +35,34 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    // 退出事件，main.cpp中调用
+    void OnAppQuit()
+    {
+        SaveData();
+        qInfo() << "程序退出，已保存数据";
+    }
+
 
 private slots:
     // 打开按照目录
     void on_actionOpenAppDir_triggered();
     // 打开关于窗口
     void on_actionOpenAboutDialog_triggered();
-
+    // 打开查看历史窗口
     void on_actionOpenHistoryDialog_triggered();
+    // 托盘
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
 
 protected:
     // 窗口显示事件
     void showEvent(QShowEvent *event) override
     {
-        SaveDataToDB();
+        _getTopWindowCount = 0;
+        SaveData();
         _timerRefreshListWidget.start();
         RefreshListWidget();
         QMainWindow::showEvent(event);
+        activateWindow();
     }
     void hideEvent(QHideEvent *event) override
     {
@@ -64,6 +75,17 @@ protected:
         hide();
         event->ignore();
     }
+    // 关机事件
+    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override
+    {
+        MSG *msg = static_cast<MSG *>(message);
+        if (msg->message == WM_QUERYENDSESSION || msg->message == WM_ENDSESSION)
+        {
+            qInfo() << "系统关机";
+            QApplication::quit();
+        }
+        return false;
+    }
 
 private:
     Ui::MainWindow *ui;
@@ -73,7 +95,11 @@ private:
     bool _first12hours[12 * 60] = {false};
     bool _second12hours[12 * 60] = {false};
     // 托盘
-    AppTrayIcon *_appTrayIcon;
+    QSystemTrayIcon *_trayIcon;
+    QMenu *_menu;
+    QAction *actionOpenAppDir;
+    QAction *actionShowWindow;
+    QAction *actionExitApp;
     // 每分钟检查是否程序在运行
     QTimer _timerCheckUsing;
     // 状态栏label
@@ -107,9 +133,14 @@ private:
     QString FormatSeconds(int totalSeconds);
     // 截图
     void CaptureFullScreen();
-    // 保存数据到数据库
-    void SaveDataToDB();
     // 检查是否在使用
     void CheckUsing();
+    // 初始化tuop
+    void InitializeTray();
+    // 使用情况
+    void SaveUsageRecords();
+    void LoadUsageRecords();
+    // 保存数据
+    void SaveData();
 };
 #endif // MAINWINDOW_H

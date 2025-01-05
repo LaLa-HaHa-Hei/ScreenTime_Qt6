@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>422</width>
-    <height>589</height>
+    <width>400</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,6 +19,9 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QListWidget" name="listWidget">
       <property name="sizePolicy">
@@ -31,22 +34,28 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>7</number>
+      </property>
       <item>
        <widget class="QChartView" name="chartViewLeft">
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>190</height>
+          <width>165</width>
+          <height>165</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
-          <height>190</height>
+          <width>165</width>
+          <height>165</height>
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true">border-image:url(:img/Assets/clock1.png);</string>
         </property>
        </widget>
       </item>
@@ -54,15 +63,18 @@
        <widget class="QChartView" name="chartViewRight">
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>190</height>
+          <width>165</width>
+          <height>165</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
-          <height>190</height>
+          <width>165</width>
+          <height>165</height>
          </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border-image:url(:img/Assets/clock2.png);</string>
         </property>
        </widget>
       </item>
@@ -105,7 +117,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>422</width>
+     <width>400</width>
      <height>24</height>
     </rect>
    </property>

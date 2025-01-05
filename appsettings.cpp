@@ -2,6 +2,8 @@
 #include <QFile>
 #include <QDir>
 #include <QCoreApplication>
+#include <QDate>
+#include <QDebug>
 
 AppSettings::AppSettings(const QString& filePath)
     : _settings(ToAbsolutePath(filePath), QSettings::IniFormat)
@@ -9,7 +11,7 @@ AppSettings::AppSettings(const QString& filePath)
     QString absoluteFilePath = ToAbsolutePath(filePath);
     if(QFile::exists(absoluteFilePath))
     {
-        UserDataDir = _settings.value("UserDataDir", UserDataDir).toString();
+        UserDataFolder = _settings.value("UserDataFolder", UserDataFolder).toString();
         EnableScreenshot = _settings.value("EnableScreenshot", EnableScreenshot).toBool();
         ScreenshotInterval_min = _settings.value("ScreenshotInterval_min", ScreenshotInterval_min).toInt();
         JpegQuality = _settings.value("JpegQuality", JpegQuality).toInt();
@@ -24,7 +26,7 @@ AppSettings::AppSettings(const QString& filePath)
     }
     else
     {
-        _settings.setValue("UserDataDir", UserDataDir);
+        _settings.setValue("UserDataFolder", UserDataFolder);
         _settings.setValue("EnableScreenshot", EnableScreenshot);
         _settings.setValue("ScreenshotInterval_min", ScreenshotInterval_min);
         _settings.setValue("JpegQuality", JpegQuality);
@@ -35,12 +37,14 @@ AppSettings::AppSettings(const QString& filePath)
         _settings.sync();
     }
 
-    UserDataDir = ToAbsolutePath(UserDataDir);
-    QDir userDir(UserDataDir);
-    ExeIconDir = userDir.filePath("exe-icon");
+    UserDataFolder = ToAbsolutePath(UserDataFolder);
+    QDir userDir(UserDataFolder);
+    ExeIconFolder = userDir.filePath("exe-icon");
     DataBasePath = userDir.filePath("sqlite3.db");
     ScreenshotDir = userDir.filePath("screenshot");
-    TodayScreenshotDir = userDir.filePath(QString("screenshot") + QDir::separator() + QDate::currentDate().toString("yyyy-MM-dd"));
+    UsageRecordsFolder = userDir.filePath("usage-records");
+    UsageRecordsFile = UsageRecordsFolder + QDir::separator() + QDate::currentDate().toString("yyyy-MM-dd") + ".dat";
+    TodayScreenshotFolder = userDir.filePath(QString("screenshot") + QDir::separator() + QDate::currentDate().toString("yyyy-MM-dd"));
 }
 
 QString AppSettings::ToAbsolutePath(const QString& path) const
@@ -58,23 +62,20 @@ void AppSettings::CheckAndCreateDirectories()
 {
     // 必要的文件夹
     QDir dir;
-    // 检查并创建用户数据文件夹
-    if (!dir.exists(UserDataDir))
+    if (!dir.exists(UserDataFolder))
     {
-        if (!dir.mkpath(UserDataDir)) {
-            qCritical() << "无法创建用户数据文件夹：" << UserDataDir;
+        if (!dir.mkpath(UserDataFolder)) {
+            qCritical() << "无法创建用户数据文件夹：" << UserDataFolder;
             // QMessageBox::critical(this, "错误", "无法创建用户数据文件夹");
         }
     }
-    // 检查并创建 exe-icon 文件夹
-    if (!dir.exists(ExeIconDir))
+    if (!dir.exists(ExeIconFolder))
     {
-        if (!dir.mkpath(ExeIconDir)) {
-            qCritical() << "无法创建 exe-icon 文件夹：" << ExeIconDir;
+        if (!dir.mkpath(ExeIconFolder)) {
+            qCritical() << "无法创建 exe-icon 文件夹：" << ExeIconFolder;
             // QMessageBox::critical(this, "错误", "无法创建图标存储文件夹");
         }
     }
-    // 检查并创建 screenshot 文件夹
     if (!dir.exists(ScreenshotDir))
     {
         if (!dir.mkpath(ScreenshotDir)) {
@@ -82,11 +83,17 @@ void AppSettings::CheckAndCreateDirectories()
             // QMessageBox::critical(this, "错误", "无法创建截屏文件夹");
         }
     }
-    // 检查并创建 今天的screenshot 文件夹
-    if (!dir.exists(TodayScreenshotDir))
+    if (!dir.exists(UsageRecordsFolder))
     {
-        if (!dir.mkpath(TodayScreenshotDir)) {
-            qCritical() << "无法创建今天的截屏文件夹：" << TodayScreenshotDir;
+        if (!dir.mkpath(UsageRecordsFolder)) {
+            qCritical() << "无法创建使用记录文件夹：" << ScreenshotDir;
+            // QMessageBox::critical(this, "错误", "无法创建截屏文件夹");
+        }
+    }
+    if (!dir.exists(TodayScreenshotFolder))
+    {
+        if (!dir.mkpath(TodayScreenshotFolder)) {
+            qCritical() << "无法创建今天的截屏文件夹：" << TodayScreenshotFolder;
             // QMessageBox::critical(this, "错误", "无法创建今天的截屏文件夹：");
         }
     }

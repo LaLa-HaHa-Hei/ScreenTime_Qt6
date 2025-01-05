@@ -23,51 +23,51 @@ void logToFile(QtMsgType type, const QMessageLogContext &context, const QString 
     QString logLevel;
     switch (type) {
     case QtDebugMsg:
-        logLevel = "DEBUG";
+        logLevel = " [DEBUG] ";
         break;
     case QtInfoMsg:
-        logLevel = "INFO";
+        logLevel = " [INFO] ";
         break;
     case QtWarningMsg:
-        logLevel = "WARNING";
+        logLevel = " [WARNING] ";
         break;
     case QtCriticalMsg:
-        logLevel = "CRITICAL";
+        logLevel = " [CRITICAL] ";
         break;
     case QtFatalMsg:
-        logLevel = "FATAL";
+        logLevel = " [FATAL] ";
         break;
     }
 
     // 将日志消息写入文件
-    out << timestamp << " - " << logLevel << " - "
-        << context.file << ":" << context.line << " (" << context.function << ") - "
-        << msg << "\n";
+    out << timestamp << logLevel << " - "<< msg << "\n";
 }
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // 获取日志文件路径
+    // 使用标准的数字格式
+    QLocale::setDefault(QLocale::C);
+
+    // 配置日志
     QString logFilePath = QDir(QCoreApplication::applicationDirPath()).filePath("log.txt");
-    // 打开日志文件（以追加模式）
     logFile.setFileName(logFilePath);
     if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
         qWarning() << "无法打开日志文件:" << logFilePath;
         return -1; // 无法打开日志文件，直接退出
     }
-
     qInstallMessageHandler(logToFile);
 
-    qInfo() << "字体：" << QFontDatabase::systemFont(QFontDatabase::GeneralFont).family();
-    qInfo() << "语言：" << QLocale::system().name();
-    // 使用标准的数字格式
-    QLocale::setDefault(QLocale::C);
-
     qInfo() << "开始";
+    // qInfo() << "字体：" << QFontDatabase::systemFont(QFontDatabase::GeneralFont).family();
+    // qInfo() << "语言：" << QLocale::system().name();
+
     MainWindow w;
-    int returnValue = a.exec();
-    qInfo() << "结束";
-    return returnValue;
+    // 程序退出时保存数据
+    QObject::connect(&a, &QCoreApplication::aboutToQuit, &w, &MainWindow::OnAppQuit);
+
+    int val = a.exec();
+    qInfo() << "退出 (" << val << ")";
+    return val;
 }

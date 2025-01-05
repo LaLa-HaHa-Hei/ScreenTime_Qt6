@@ -6,6 +6,8 @@
 #include "databasemanager.h"
 #include <QDate>
 #include <QApplication>
+#include <QtCharts>
+#include "appsettings.h"
 
 namespace Ui {
 class HistoryDialog;
@@ -16,7 +18,7 @@ class HistoryDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HistoryDialog(QWidget *parent = nullptr);
+    explicit HistoryDialog(QWidget *parent = nullptr, AppSettings *settings = nullptr);
     ~HistoryDialog();
 
 private slots:
@@ -26,12 +28,15 @@ private slots:
 
 private:
     Ui::HistoryDialog *ui;
-    const QString _appDir = QCoreApplication::applicationDirPath();
-    const QString _exeIconDir = ".\\user-data\\exe-icon";
-    const QString _dataBasePath = ".\\user-data\\sqlite3.db";
+    AppSettings *_settings;
     DatabaseManager *_dbManager;
     QStringList _tableNameList;
-    QStringList _dateList;
+    QStringList _dateList = {" "};
+    // 饼图
+    QChart *_chartLeft;
+    QChart *_chartRight;
+    bool _first12hours[12 * 60] = {false};
+    bool _second12hours[12 * 60] = {false};
     // 添加数据到列表
     void AddListWidgetItem(QString name, QString iconPath, QString time, int percentage);
     // 将总秒数转化为时间文本

@@ -1,4 +1,5 @@
 #include "databasemanager.h"
+#include <QDebug>
 
 DatabaseManager::DatabaseManager(const QString& dbPath)
 {

@@ -11,7 +11,6 @@ CONFIG += c++17
 SOURCES += \
     aboutdialog.cpp \
     appsettings.cpp \
-    apptrayicon.cpp \
     databasemanager.cpp \
     exeitemwidget.cpp \
     historydialog.cpp \
@@ -21,7 +20,6 @@ SOURCES += \
 HEADERS += \
     aboutdialog.h \
     appsettings.h \
-    apptrayicon.h \
     databasemanager.h \
     exeitemwidget.h \
     historydialog.h \
